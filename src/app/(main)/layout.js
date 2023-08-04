@@ -1,6 +1,7 @@
 'use client';
 
 import { Fragment, useState } from 'react';
+import { useSession, signOut } from 'next-auth/react';
 import { Dialog, Transition } from '@headlessui/react';
 import {
   Bars3Icon,
@@ -12,6 +13,8 @@ import {
   UsersIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
+import SquareLogo from '@/components/shared/SquareLogo';
+import { usePathname } from 'next/navigation';
 
 const user = {
   name: 'Tom Cook',
@@ -21,10 +24,22 @@ const user = {
 };
 
 const navigation = [
-  { name: 'Dashboard', href: '#', icon: HomeIcon, current: true },
-  { name: 'Users', href: '#', icon: UsersIcon, current: false },
-  { name: 'CMPM', href: '/cmpm', icon: FolderIcon, current: false },
-  { name: 'CPS', href: '#', icon: CalendarIcon, current: false },
+  {
+    name: 'Dashboard',
+    href: '/dashboard',
+    icon: HomeIcon,
+    current: true,
+    id: '/dashboard',
+  },
+  { name: 'Users', href: '#', icon: UsersIcon, current: false, id: '/users' },
+  {
+    name: 'CMPM',
+    href: '/cmpm',
+    icon: FolderIcon,
+    current: false,
+    id: '/cmpm',
+  },
+  { name: 'CPS', href: '/cps', icon: CalendarIcon, current: false, id: '/cps' },
 ];
 const teams = [
   { id: 1, name: 'Heroicons', href: '#', initial: 'H', current: false },
@@ -37,6 +52,9 @@ function classNames(...classes) {
 }
 
 export default function DashboardRootLayout({ children }) {
+  const { data } = useSession();
+  console.log(data);
+  const pathName = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   return (
     <>
@@ -103,12 +121,8 @@ export default function DashboardRootLayout({ children }) {
                   </Transition.Child>
                   {/* Sidebar component, swap this element with another sidebar if you like */}
                   <div className='flex grow flex-col gap-y-5 overflow-y-auto bg-gray-900 px-6 pb-2 ring-1 ring-white/10'>
-                    <div className='flex h-16 shrink-0 items-center'>
-                      <img
-                        className='h-8 w-auto'
-                        src='https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=500'
-                        alt='Your Company'
-                      />
+                    <div className='flex h-20  mt-6 shrink-0 items-center'>
+                      <SquareLogo />
                     </div>
                     <nav className='flex flex-1 flex-col'>
                       <ul role='list' className='flex flex-1 flex-col gap-y-7'>
@@ -161,6 +175,12 @@ export default function DashboardRootLayout({ children }) {
                           </ul>
                         </li>
                       </ul>
+                      <div
+                        className='py-4 px-6 cursor-pointer text-sm font-bold text-white bg-gray-800 flex items-center justify-center'
+                        onClick={() => signOut()}
+                      >
+                        Sign Out
+                      </div>
                     </nav>
                   </div>
                 </Dialog.Panel>
@@ -173,12 +193,8 @@ export default function DashboardRootLayout({ children }) {
         <div className='hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col'>
           {/* Sidebar component, swap this element with another sidebar if you like */}
           <div className='flex grow flex-col gap-y-5 overflow-y-auto bg-gray-900 px-6'>
-            <div className='flex h-16 shrink-0 items-center'>
-              <img
-                className='h-8 w-auto'
-                src='https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=500'
-                alt='Your Company'
-              />
+            <div className='flex h-20 shrink-0 items-center mt-6'>
+              <SquareLogo />
             </div>
             <nav className='flex flex-1 flex-col'>
               <ul role='list' className='flex flex-1 flex-col gap-y-7'>
@@ -189,7 +205,7 @@ export default function DashboardRootLayout({ children }) {
                         <a
                           href={item.href}
                           className={classNames(
-                            item.current
+                            item.id === pathName
                               ? 'bg-gray-800 text-white'
                               : 'text-gray-400 hover:text-white hover:bg-gray-800',
                             'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
@@ -230,20 +246,25 @@ export default function DashboardRootLayout({ children }) {
                     ))}
                   </ul>
                 </li>
-                <li className='-mx-6 mt-auto'>
-                  <a
-                    href='#'
-                    className='flex items-center gap-x-4 px-6 py-3 text-sm font-semibold leading-6 text-white hover:bg-gray-800'
-                  >
-                    <img
-                      className='h-8 w-8 rounded-full bg-gray-800'
-                      src='https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'
-                      alt=''
-                    />
-                    <span className='sr-only'>Your profile</span>
-                    <span aria-hidden='true'>Tom Cook</span>
-                  </a>
-                </li>
+                {data && (
+                  <li className='-mx-6 mt-auto'>
+                    <div className='flex items-center gap-x-4 px-6 py-3 text-sm font-semibold leading-6 text-white hover:bg-gray-800'>
+                      <img
+                        className='h-8 w-8 rounded-full bg-gray-800'
+                        src={data.user.image}
+                        alt=''
+                      />
+                      <span className='sr-only'>Your profile</span>
+                      <span aria-hidden='true'>{data.user.name}</span>
+                    </div>
+                    <div
+                      className='py-4 px-6 cursor-pointer text-sm font-bold text-white bg-gray-800 flex items-center justify-center'
+                      onClick={() => signOut()}
+                    >
+                      Sign Out
+                    </div>
+                  </li>
+                )}
               </ul>
             </nav>
           </div>
@@ -258,17 +279,19 @@ export default function DashboardRootLayout({ children }) {
             <span className='sr-only'>Open sidebar</span>
             <Bars3Icon className='h-6 w-6' aria-hidden='true' />
           </button>
-          <div className='flex-1 text-sm font-semibold leading-6 text-white'>
-            Dashboard
-          </div>
-          <a href='#'>
+          <div className='flex-1 text-sm font-semibold leading-6 text-white'></div>
+          <div href='#'>
             <span className='sr-only'>Your profile</span>
-            <img
-              className='h-8 w-8 rounded-full bg-gray-800'
-              src='https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'
-              alt=''
-            />
-          </a>
+            {data && (
+              <>
+                <img
+                  className='h-8 w-8 rounded-full bg-gray-800'
+                  src={data.user.image}
+                  alt={data.user.name}
+                />
+              </>
+            )}
+          </div>
         </div>
 
         <main className='py-10 lg:pl-72'>
