@@ -4,7 +4,7 @@ import { getCMPMForm } from '@/graphql/queries';
 import awsExports from '../../aws-exports';
 import { PaperClipIcon } from '@heroicons/react/20/solid';
 
-Amplify.configure(awsExports);
+Amplify.configure({ ...awsExports, ssr: true });
 
 const getData = async (id) => {
   const form = await API.graphql({

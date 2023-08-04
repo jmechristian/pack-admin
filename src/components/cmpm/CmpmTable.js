@@ -4,7 +4,7 @@ import { listCMPMForms } from '@/graphql/queries';
 import awsExports from '../../aws-exports';
 import Link from 'next/link';
 
-Amplify.configure(awsExports);
+Amplify.configure({ ...awsExports, ssr: true });
 
 const getData = async () => {
   const forms = await API.graphql({ query: listCMPMForms });
